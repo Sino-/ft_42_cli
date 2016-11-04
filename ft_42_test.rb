@@ -1,6 +1,5 @@
 require 'minitest/autorun'
 require 'minitest/pride'
 
-class FTime < Minitest:Test
-  
+class FT_42 < Minitest:Test
 end

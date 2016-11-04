@@ -1,3 +1,3 @@
-#FTime
+#ft_42
 
-How much time have you spent at the 42 clusters?
+Useful 42 info from your command line.

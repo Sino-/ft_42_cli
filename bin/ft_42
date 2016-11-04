@@ -1,15 +1,17 @@
+#!/usr/bin/env ruby
+
 require "active_support/all"
-require "action_view"
 require "pastel"
 require "oauth2"
 require "ruby-progressbar"
+require "dotenv"
 
-include ActionView::Helpers::DateHelper
+Dotenv.load
 
 HOURS_NEEDED = 38
 USERNAME     = ARGV[0];
-UID          = ENV["UID"]
-SECRET       = ENV["SECRET"]
+UID          = ENV.fetch("UID")
+SECRET       = ENV.fetch("SECRET")
 
 client = OAuth2::Client.new(UID, SECRET, site: "https://api.intra.42.fr")
 token  = client.client_credentials.get_token
@@ -26,13 +28,12 @@ sessions.each do |session|
   duration += (end_at - begin_at)
 end
 
-pastel = Pastel.new
-
-puts pastel.bright_green("#{USERNAME} has ", pastel.bold("#{distance_of_time_in_words(duration)}"), " in the clusters this week")
-
 hours = (duration / 60 / 60).round
-percent_complete = ((hours.to_f / HOURS_NEEDED.to_f) * 100).round
 
-progressbar_needed = ProgressBar.create(length: 60, format: "%t: |%B| 38 hours")
+pastel = Pastel.new
+puts pastel.bright_green.bold("#{USERNAME}") + " has " + pastel.bright_green.bold("#{hours} #{hours == 1 ? 'hour' : 'hours'}") + " in the clusters this week"
+
+percent_complete = ((hours.to_f / HOURS_NEEDED.to_f) * 100).round
+progressbar_needed = ProgressBar.create(length: 60, format: "%t: |" + pastel.bright_green("%B") + "| #{hours}/38 hours")
 percent_complete.times { progressbar_needed.increment }
-puts pastel.bright_green(progressbar_needed)
+puts progressbar_needed
