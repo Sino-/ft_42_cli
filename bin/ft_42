@@ -4,33 +4,46 @@ require "active_support/all"
 require "pastel"
 require "oauth2"
 require "ruby-progressbar"
+require "pp" # DELETE
 
 HOURS_NEEDED = 38
 USERNAME     = ARGV[0];
 UID          = ENV.fetch("FT42_UID")
 SECRET       = ENV.fetch("FT42_SECRET")
 
+# get token
 client = OAuth2::Client.new(UID, SECRET, site: "https://api.intra.42.fr")
 token  = client.client_credentials.get_token
 
+# helpers
 time_ago  = Time.current.beginning_of_week.to_s.split(" ")[0...-1].join("T")
 right_now = Time.current.to_s.split(" ")[0...-1].join("T")
 
-sessions = token.get("/v2/users/#{USERNAME}/locations?range[begin_at]=#{time_ago},#{right_now}", params: { per_page: 60 }).parsed
-
+# Make requests
+user     = token.get("/v2/users/#{USERNAME}", params: { per_page: 100 }).parsed
+sessions = token.get("/v2/users/#{USERNAME}/locations?range[begin_at]=#{time_ago},#{right_now}", params: { per_page: 100 }).parsed
+phone    = %x( ldapsearch -Q uid=#{USERNAME} | grep mobile ).split.last
+# calculate hours
 duration = 0
 sessions.each do |session|
   begin_at =  session["begin_at"].to_time
   end_at   =  session["end_at"].to_time
   duration += (end_at - begin_at)
 end
-
 hours = (duration / 60 / 60).round
 
+# currently working on
+in_progress = user["projects_users"].select { |project| project["status"] == "in_progress" }.map { |in_prog| in_prog["project"]["name"] }
+
+# printer
 pastel = Pastel.new
-puts pastel.bright_green.bold("#{USERNAME}") + " has " + pastel.bright_green.bold("#{hours} #{hours == 1 ? 'hour' : 'hours'}") + " in the clusters this week"
+puts pastel.bright_green.bold("#{user['first_name']} #{user['last_name']}") + " has " + pastel.bright_green.bold("#{hours} #{hours == 1 ? 'hour' : 'hours'}") + " in the clusters this week."
 
 percent_complete = ((hours.to_f / HOURS_NEEDED.to_f) * 100).round
 progressbar_needed = ProgressBar.create(progress_mark: "█", length: 60, format: "%t: |" + pastel.bright_green("%B") + "| #{hours}/38 hours")
 percent_complete.times { progressbar_needed.increment }
 puts progressbar_needed
+
+puts "Currently working on #{pastel.bright_green.bold(in_progress.to_sentence)}."
+
+puts "You may contact #{user['first_name']} at #{pastel.bright_green.bold(phone)}"
