@@ -28,3 +28,7 @@ Once you have it set up, you can use it like this:
 ```shell
 ft_42 [42_USERNAME]
 ```
+
+## Keep it up to date
+
+Make sure you have the latest version by running `gem update --user-install ft_42`
