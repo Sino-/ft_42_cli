@@ -56,8 +56,10 @@ puts pastel.bright_green.bold("#{user['first_name']} #{user['last_name']}")
 active = false
 sessions.each do |session|
   if session["begin_at"].to_time - session["end_at"].to_time == -600.0
-    puts "Is #{pastel.bright_green.bold('active')} at " + pastel.bright_green.bold("#{cluster(session['host'])}") + "."
-    if active
+  	unless active
+    	puts "Is #{pastel.bright_green.bold('active')} at " + pastel.bright_green.bold("#{cluster(session['host'])}") + " computer #{session['host']}."
+    end
+    unless session["primary"]
       puts pastel.red.bold("Warning: Logged in on more than one computer. Please logout from #{session['host']} ASAP.")
     end
     active = true
@@ -77,7 +79,7 @@ if (percent_complete <= 100)
   puts progressbar_needed
 end
 
-puts "Currently working on #{pastel.bright_green.bold(in_progress.to_sentence)}."
-puts "You may contact #{user['first_name'].titleize} at #{pastel.bright_green.bold(ActiveSupport::NumberHelper.number_to_phone(phone))}."
-puts "Currently level: #{pastel.bright_green.bold(ActiveSupport::NumberHelper.number_to_rounded(user['cursus_users'].select { |cursus| cursus['cursus']['name'] == "42" }.first['level'], precision: 2))}"
-puts "Has #{pastel.bright_green.bold(ActionView::Base.new.pluralize(user['correction_point'], 'correction point'))}. #{'*grabs pitchfork*' if user['correction_point'] > 6}"
+puts "Is working on #{pastel.bright_green.bold(in_progress.to_sentence)}."
+puts "Is level #{pastel.bright_green.bold(ActiveSupport::NumberHelper.number_to_rounded(user['cursus_users'].select { |cursus| cursus['cursus']['name'] == "42" }.first['level'], precision: 2))}"
+puts "Has #{pastel.bright_green.bold(ActionView::Base.new.pluralize(user['correction_point'], 'correction point'))}.#{' *grabs pitchfork*' if user['correction_point'] > 6}"
+puts "You can contact #{user['first_name'].titleize} at #{pastel.bright_green.bold(ActiveSupport::NumberHelper.number_to_phone(phone))}."
