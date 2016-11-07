@@ -4,12 +4,21 @@ require "action_view"
 require "pastel"
 require "oauth2"
 require "ruby-progressbar"
-require "pp" # DELETE
 
 HOURS_NEEDED = 38
 USERNAME     = ARGV[0]
 UID          = ENV.fetch("FT42_UID")
 SECRET       = ENV.fetch("FT42_SECRET")
+
+def cluster(host)
+  case true
+  when host.include?("z1") then "Cluster 1"
+  when host.include?("z2") then "Cluster 2"
+  when host.include?("z3") then "Cluster 3"
+  when host.include?("z3") then "Cluster 4"
+  else host
+  end
+end
 
 # get token
 client = OAuth2::Client.new(UID, SECRET, site: "https://api.intra.42.fr")
@@ -43,21 +52,30 @@ pastel = Pastel.new
 puts pastel.bright_green.bold("#{user['first_name']} #{user['last_name']}")
 
 # is active?
+active = false
 sessions.each do |session|
   if session["begin_at"].to_time - session["end_at"].to_time == -600.0
-  	puts "Is #{pastel.bright_green.bold('active')} at host #{pastel.bright_green.bold(session['host'])}."
+    puts "Is #{pastel.bright_green.bold('active')} at " + pastel.bright_green.bold("#{cluster(session['host'])}") + "."
+    if active
+      puts pastel.red.bold("Warning: Logged in on more than one computer. Please logout from #{session['host']} ASAP.")
+    end
+    active = true
   end
 end
 
-puts pastel.bright_green.bold("#{user['first_name'].titleize} #{user['last_name'].titleize}") + " has " + pastel.bright_green.bold("#{hours} #{hours == 1 ? 'hour' : 'hours'}") + " in the clusters this week."
+unless active
+  puts "Was last active " + pastel.bright_green.bold("#{ActionView::Base.new.time_ago_in_words(sessions.first['end_at'].to_time)} ago") + " at #{pastel.bright_green.bold(cluster(sessions.first['host']))}."
+end
+
+puts "Has " + pastel.bright_green.bold("#{hours} #{hours == 1 ? 'hour' : 'hours'}") + " in the clusters this week, starting #{Time.current.beginning_of_week.strftime("%A, %B #{Time.current.beginning_of_week.day.ordinalize}")}. #{'Go to sleep.' if hours > 60}"
 
 percent_complete = ((hours.to_f / HOURS_NEEDED.to_f) * 100).round
 if (percent_complete <= 100)
-  progressbar_needed = ProgressBar.create(progress_mark: "█", length: 60, format: "%t: |" + pastel.bright_green("%B") + "| #{hours}/38 hours")
+  progressbar_needed = ProgressBar.create(progress_mark: "█", length: 60, format: "%t: |" + pastel.red("%B") + "| #{hours}/38 hours")
   percent_complete.times { progressbar_needed.increment }
   puts progressbar_needed
 end
 
 puts "Currently working on #{pastel.bright_green.bold(in_progress.to_sentence)}."
 puts "You may contact #{user['first_name'].titleize} at #{pastel.bright_green.bold(ActiveSupport::NumberHelper.number_to_phone(phone))}."
-
+puts "Currently level: #{pastel.bright_green.bold(ActiveSupport::NumberHelper.number_to_rounded(user['cursus_users'].select { |cursus| cursus['cursus']['name'] == "42" }.first['level'], precision: 2))}"
