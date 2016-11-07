@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+
 require "ft_42"
 
 FT_42.new(*ARGV)
