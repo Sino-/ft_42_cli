@@ -4,12 +4,12 @@ require "action_view"
 require "pastel"
 require "oauth2"
 require "ruby-progressbar"
-require "pp"
 
-HOURS_NEEDED = 38
 USERNAME     = ARGV[0]
-UID          = ENV.fetch("FT42_UID")
-SECRET       = ENV.fetch("FT42_SECRET")
+URL_42       = "https://api.intra.42.fr"
+UID_42       = ENV.fetch("FT42_UID")
+SECRET_42    = ENV.fetch("FT42_SECRET")
+HOURS_NEEDED = 38
 
 def cluster(host)
   case true
@@ -22,7 +22,7 @@ def cluster(host)
 end
 
 # get token
-client = OAuth2::Client.new(UID, SECRET, site: "https://api.intra.42.fr")
+client = OAuth2::Client.new(UID_42 SECRET_42, site: URL_42)
 token  = client.client_credentials.get_token
 
 # helpers
@@ -56,8 +56,8 @@ puts pastel.bright_green.bold("#{user['first_name']} #{user['last_name']}")
 active = false
 sessions.each do |session|
   if session["begin_at"].to_time - session["end_at"].to_time == -600.0
-  	unless active
-    	puts "Is #{pastel.bright_green.bold('active')} at " + pastel.bright_green.bold("#{cluster(session['host'])}") + " computer #{session['host']}."
+    unless active
+      puts "Is #{pastel.bright_green.bold('active')} at " + pastel.bright_green.bold("#{cluster(session['host'])}") + " computer #{session['host']}."
     end
     unless session["primary"]
       puts pastel.red.bold("Warning: Logged in on more than one computer. Please logout from #{session['host']} ASAP.")
