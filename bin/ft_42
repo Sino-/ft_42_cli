@@ -4,6 +4,7 @@ require "action_view"
 require "pastel"
 require "oauth2"
 require "ruby-progressbar"
+require "pp"
 
 HOURS_NEEDED = 38
 USERNAME     = ARGV[0]
@@ -79,3 +80,4 @@ end
 puts "Currently working on #{pastel.bright_green.bold(in_progress.to_sentence)}."
 puts "You may contact #{user['first_name'].titleize} at #{pastel.bright_green.bold(ActiveSupport::NumberHelper.number_to_phone(phone))}."
 puts "Currently level: #{pastel.bright_green.bold(ActiveSupport::NumberHelper.number_to_rounded(user['cursus_users'].select { |cursus| cursus['cursus']['name'] == "42" }.first['level'], precision: 2))}"
+puts "Has #{pastel.bright_green.bold(ActionView::Base.new.pluralize(user['correction_point'], 'correction point'))}. #{'*grabs pitchfork*' if user['correction_point'] > 6}"
