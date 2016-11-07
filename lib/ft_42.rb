@@ -4,7 +4,6 @@ require "pastel"
 require "oauth2"
 require "ruby-progressbar"
 
-
 module Constants
   URL_42       = "https://api.intra.42.fr"
   UID_42       = ENV.fetch("FT42_UID")
@@ -16,13 +15,15 @@ class FT_42
 
   include Constants
 
+  # change to start
   def initialize(*args)
-    # Setup API
-    # Make requests
-    # Parse Requests
-    # Print
-
-
+    # ft_42                 = Client.new(args.first)
+    # user                  = User.new(ft_42.user)
+    # user_sessions         = UserSessions.new(ft_42.user_sessions)
+    # user_print            = UserPrinter.new(user)
+    # user_sessions_print   = UserSessionsPrinter.new(user_sessions)
+    # user_print.all
+    # user_sessions_print.all
 
     username = args.first
 
@@ -58,21 +59,23 @@ class FT_42
     puts pastel.bright_green.bold("#{user['first_name']} #{user['last_name']}")
 
     # is active?
-    active = false
-    sessions.each do |session|
-      if session["begin_at"].to_time - session["end_at"].to_time == -600.0
-        unless active
-          puts "Is #{pastel.bright_green.bold('active')} at " + pastel.bright_green.bold("#{cluster(session['host'])}") + " computer #{session['host']}."
+    unless sessions.empty?
+      active = false
+      sessions.each do |session|
+        if session["begin_at"].to_time - session["end_at"].to_time == -600.0
+          unless active
+            puts "Is #{pastel.bright_green.bold('active')} at " + pastel.bright_green.bold("#{cluster(session['host'])}") + " computer #{session['host']}."
+          end
+          unless session["primary"]
+            puts pastel.red.bold("Warning: Logged in on more than one computer. Please logout from #{session['host']} ASAP.")
+          end
+          active = true
         end
-        unless session["primary"]
-          puts pastel.red.bold("Warning: Logged in on more than one computer. Please logout from #{session['host']} ASAP.")
-        end
-        active = true
       end
-    end
 
-    unless active
-      puts "Was last active " + pastel.bright_green.bold("#{ActionView::Base.new.time_ago_in_words(sessions.first['end_at'].to_time)} ago") + " at #{pastel.bright_green.bold(cluster(sessions.first['host']))}."
+      unless active
+        puts "Was last active " + pastel.bright_green.bold("#{ActionView::Base.new.time_ago_in_words(sessions.first['end_at'].to_time)} ago") + " at #{pastel.bright_green.bold(cluster(sessions.first['host']))}."
+      end
     end
 
     puts "Has " + pastel.bright_green.bold("#{hours} #{hours == 1 ? 'hour' : 'hours'}") + " in the clusters this week, starting #{Time.current.beginning_of_week.strftime("%A, %B #{Time.current.beginning_of_week.day.ordinalize}")}. #{'Go to sleep.' if hours > 60}"
@@ -103,101 +106,99 @@ class FT_42
   end
 end
 
-class Client
-  attr_reader :username
+# class Client
+#   attr_reader :username
 
-  def initialize(username)
-    @username = username
-  end
+#   def initialize(username)
+#     @username = username
+#   end
 
-  def user
-  end
+#   def user
+#   end
 
-  def user_sessions_this_week
-  end
-end
+#   def user_sessions_this_week
+#   end
+# end
 
-class Token
-  def initialize(uid, secret, url)
-    
-  end
-end
+# class Token
+#   def initialize(uid, secret, url)
 
-class User
+#   end
+# end
 
-  attr_reader :user
+# class User
 
-  def initialize(user_response)
-    @user = user_response
-  end
+#   attr_reader :user
 
-  def current_projects
-  end
+#   def initialize(user_response)
+#     @user = user_response
+#   end
 
-  def first_name
-  end
+#   def current_projects
+#   end
 
-  def last_name
-  end
+#   def first_name
+#   end
 
-  def full_name
-  end
+#   def last_name
+#   end
 
-  def correction_points
-  end
+#   def full_name
+#   end
 
-  def level
-  end
+#   def correction_points
+#   end
 
-  def phone
-  end
+#   def level
+#   end
 
-  def active?
-  end
+#   def phone
+#   end
 
-  def last_active_session
-  end
+#   def active?
+#   end
 
-  def hours_this_week
-  end
-end
+#   def last_active_session
+#   end
 
-class Session
-  attr_reader :session
+#   def hours_this_week
+#   end
+# end
 
-  def initialize(session)
-    @session = session
-  end
+# class Session
+#   attr_reader :session
 
-  def host
-  end
+#   def initialize(session)
+#     @session = session
+#   end
 
-  def duration_in_hours
-  end
+#   def host
+#   end
 
+#   def duration_in_hours
+#   end
+# end
 
-end
+# class UserSessions
+#   attr_reader :user_sessions
 
-class UserSessions
-  attr_reader :user_sessions
+#   def initialize(user_sessions_response)
+#     @user_sessions = user_sessions_response
+#   end
 
-  def initialize(user_sessions_response)
-    @user_sessions = user_sessions_response
-  end
+#   def total_hours_this_week
+#   end
+# end
 
-  def total_hours_this_week
-  end
-end
+# class UserPrinter
+#   attr_reader :pastel
 
-class UserPrinter
-  attr_reader :pastel
+#   # include ActiveView and ActiveSupport
 
-  # include ActiveView and ActiveSupport
+#   def initialize
+#     @pastel = Pastel.new
+#   end
+# end
 
-  def initialize
-    @pastel = Pastel.new
-  end
-end
-
-class SessionPrinter
-end
+# class UserSessionsPrinter
+# end
