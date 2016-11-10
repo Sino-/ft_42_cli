@@ -12,73 +12,232 @@ module Constants
 end
 
 class FT_42
-
   include Constants
 
-  # change to start
   def initialize(*args)
-    # ft_42                 = Client.new(args.first)
-    # user                  = User.new(ft_42.user)
-    # user_sessions         = UserSessions.new(ft_42.user_sessions)
-    # user_print            = UserPrinter.new(user)
-    # user_sessions_print   = UserSessionsPrinter.new(user_sessions)
-    # user_print.all
-    # user_sessions_print.all
+    ft_42                 = Client.new(args.first)
+    user                  = User.new(ft_42.user)
+    user_sessions         = UserSessions.new(ft_42.user_sessions)
+    user_print            = UserPrinter.new(user)
+    user_sessions_print   = UserSessionsPrinter.new(user_sessions)
+    user_print.all
+    user_sessions_print.all
+  end
+end
 
-    username = args.first
+class Client
+  attr_reader :username, :token
 
-    # get token
+  def initialize(username)
+    @username = username
+    @token    = Token.new.token
+  end
+
+  def user
+    token.get("/v2/users/#{username}", params: { per_page: 100 }).parsed
+  end
+
+  def user_sessions
+    token.get("/v2/users/#{username}/locations?range[begin_at]=#{time_ago},#{right_now}", params: { per_page: 100 }).parsed
+  end
+
+  private
+
+  def time_ago
+    Time.current.beginning_of_week.to_s.split(" ")[0...-1].join("T")
+  end
+
+  def right_now
+    Time.current.to_s.split(" ")[0...-1].join("T")
+  end
+end
+
+class Token
+  include Constants
+
+  attr_reader :token
+
+  def initialize(uid, secret, url)
     client = OAuth2::Client.new(UID_42, SECRET_42, site: URL_42)
-    token  = client.client_credentials.get_token
+    @token = client.client_credentials.get_token
+  end
+end
 
-    # helpers
-    time_ago  = Time.current.beginning_of_week.to_s.split(" ")[0...-1].join("T")
-    right_now = Time.current.to_s.split(" ")[0...-1].join("T")
+class User
+  attr_reader :user
 
-    # Make requests
-    user     = token.get("/v2/users/#{username}", params: { per_page: 100 }).parsed
-    sessions = token.get("/v2/users/#{username}/locations?range[begin_at]=#{time_ago},#{right_now}", params: { per_page: 100 }).parsed
-    phone    = %x(ldapsearch -Q uid=#{username} | grep mobile).split.last
+  def initialize(user_response)
+    @user = user_response
+  end
 
-    # calculate hours
-    duration = 0
+  def current_projects
+    if projects_in_progress.empty?
+      return ["something, maybe..."]
+    else
+      return projects_in_progress.map { |in_prog| in_prog["project"]["name"] }
+  end
+
+  def first_name
+    user["first_name"]
+  end
+
+  def last_name
+    user["last_name"]
+  end
+
+  def full_name
+    "#{first_name} #{last_name}"
+  end
+
+  def correction_points
+    user["correction_point"]
+  end
+
+  def level
+    cursus("42")["level"]
+  end
+
+  def phone
+    %x(ldapsearch -Q uid=#{username} | grep mobile).split.last
+  end
+
+  private
+
+  def cursus(name)
+    user['cursus_users'].select { |cursus| cursus['cursus']['name'] == name }.first
+  end
+
+  def projects_in_progress
+    user["projects_users"].select { |project| project["status"] == "in_progress" }
+  end
+end
+
+class Session
+  attr_reader :session
+
+  def initialize(session)
+    @session = session
+  end
+
+  def begin_at
+    session["begin_at"].to_time
+  end
+
+  def end_at
+    session["end_at"].to_time
+  end
+
+  def host
+    session["host"]
+  end
+
+  def primary?
+    session["primary"]
+  end
+
+  def duration
+    end_at - begin_at
+  end
+end
+
+class UserSessions
+  attr_reader :user_sessions
+
+  def initialize(user_sessions_response)
+    @user_sessions = user_sessions_response
+  end
+
+  def sessions
+    user_sessions.map { |session| Session.new(session) }
+  end
+
+  def total_hours_this_week
+    total_duration = 0
     sessions.each do |session|
-      begin_at =  session["begin_at"].to_time
-      end_at   =  session["end_at"].to_time
-      duration += (end_at - begin_at)
+      total_duration += session.duration
     end
-    hours = (duration / 60 / 60).round
+    (total_duration / 60 / 60).round
+  end
+end
 
-    # currently working on
-    in_progress = user["projects_users"].select { |project| project["status"] == "in_progress" }.map { |in_prog| in_prog["project"]["name"] }
-    in_progress = ["something, maybe.."] if in_progress.empty?
+class UserPrinter
+  attr_reader :pastel, :user
 
-    # printer
-    pastel = Pastel.new
+  def initialize(user)
+    @pastel = Pastel.new
+    @user = user
+  end
 
-    puts pastel.bright_green.bold("#{user['first_name']} #{user['last_name']}")
+  def all
+    name
+    current_projects
+    level
+    correction_points
+  end
 
-    # is active?
-    unless sessions.empty?
+  def name
+    puts highlight(user.full_name)
+  end
+
+  def current_projects
+    puts "Is working on #{highlight(user.current_projects.to_sentence)}."
+  end
+
+  def level
+    # remove active support stuff
+    puts "Is level #{highlight(ActiveSupport::NumberHelper.number_to_rounded(user.level, precision: 2))}"
+  end
+
+  def correction_points
+    print "Has #{highlight(ActionView::Base.new.pluralize(user.correction_points, 'correction point'))}."
+    grabs_pitchfork if user.correction_points > 6
+    puts
+  end
+
+  def contact
+    puts "You can contact #{user.first_name.titleize} at #{highlight(ActiveSupport::NumberHelper.number_to_phone(user.phone))}."
+  end
+
+  private
+
+  def highlight(string)
+    pastel.bright_green.bold(string)
+  end
+
+  def grabs_pitchfork
+    print " *grabs pitchfork*"
+  end
+end
+
+class UserSessionsPrinter
+  attr_reader :pastel, :user_sessions
+
+  def initialize(user_sessions)
+    @pastel = Pastel.new
+    @user_sessions = user_sessions
+  end
+
+  def all
+    unless user_sessions.empty?
       active = false
-      sessions.each do |session|
-        if session["begin_at"].to_time - session["end_at"].to_time == -600.0
+      user_sessions.each do |session|
+        if session.end_at - session.begin_at == 600.0
           unless active
-            puts "Is #{pastel.bright_green.bold('active')} at " + pastel.bright_green.bold("#{cluster(session['host'])}") + " computer #{session['host']}."
+            puts "Is #{highlight('active')} at " + highlight("#{cluster(session.host)}") + " computer #{session.host}."
           end
-          unless session["primary"]
-            puts pastel.red.bold("Warning: Logged in on more than one computer. Please logout from #{session['host']} ASAP.")
+          unless session.primary?
+            puts pastel.red.bold("Warning: Logged in on more than one computer. Please logout from #{session.host} ASAP.")
           end
           active = true
         end
       end
 
       unless active
-        puts "Was last active " + pastel.bright_green.bold("#{ActionView::Base.new.time_ago_in_words(sessions.first['end_at'].to_time)} ago") + " at #{pastel.bright_green.bold(cluster(sessions.first['host']))}."
+        puts "Was last active " + highlight("#{ActionView::Base.new.time_ago_in_words(sessions.first.end_at)} ago") + " at #{highlight(cluster(sessions.first.host))}."
       end
     end
 
-    puts "Has " + pastel.bright_green.bold("#{hours} #{hours == 1 ? 'hour' : 'hours'}") + " in the clusters this week, starting #{Time.current.beginning_of_week.strftime("%A, %B #{Time.current.beginning_of_week.day.ordinalize}")}. #{'Go to sleep.' if hours > 60}"
+    puts "Has " + highlight("#{hours} #{hours == 1 ? 'hour' : 'hours'}") + " in the clusters this week, starting #{Time.current.beginning_of_week.strftime("%A, %B #{Time.current.beginning_of_week.day.ordinalize}")}. #{'Go to sleep.' if hours > 60}"
 
     percent_complete = ((hours.to_f / HOURS_NEEDED.to_f) * 100).round
     if (percent_complete <= 100)
@@ -86,14 +245,17 @@ class FT_42
       percent_complete.times { progressbar_needed.increment }
       puts progressbar_needed
     end
-
-    puts "Is working on #{pastel.bright_green.bold(in_progress.to_sentence)}."
-    puts "Is level #{pastel.bright_green.bold(ActiveSupport::NumberHelper.number_to_rounded(user['cursus_users'].select { |cursus| cursus['cursus']['name'] == "42" }.first['level'], precision: 2))}"
-    puts "Has #{pastel.bright_green.bold(ActionView::Base.new.pluralize(user['correction_point'], 'correction point'))}.#{' *grabs pitchfork*' if user['correction_point'] > 6}"
-    puts "You can contact #{user['first_name'].titleize} at #{pastel.bright_green.bold(ActiveSupport::NumberHelper.number_to_phone(phone))}."
   end
 
   private
+
+  def hours
+    user_sessions.total_hours_this_week
+  end
+
+  def highlight(string)
+    pastel.bright_green.bold(string)
+  end
 
   def cluster(host)
     case true
@@ -105,100 +267,3 @@ class FT_42
     end
   end
 end
-
-# class Client
-#   attr_reader :username
-
-#   def initialize(username)
-#     @username = username
-#   end
-
-#   def user
-#   end
-
-#   def user_sessions_this_week
-#   end
-# end
-
-# class Token
-#   def initialize(uid, secret, url)
-
-#   end
-# end
-
-# class User
-
-#   attr_reader :user
-
-#   def initialize(user_response)
-#     @user = user_response
-#   end
-
-#   def current_projects
-#   end
-
-#   def first_name
-#   end
-
-#   def last_name
-#   end
-
-#   def full_name
-#   end
-
-#   def correction_points
-#   end
-
-#   def level
-#   end
-
-#   def phone
-#   end
-
-#   def active?
-#   end
-
-#   def last_active_session
-#   end
-
-#   def hours_this_week
-#   end
-# end
-
-# class Session
-#   attr_reader :session
-
-#   def initialize(session)
-#     @session = session
-#   end
-
-#   def host
-#   end
-
-#   def duration_in_hours
-#   end
-# end
-
-# class UserSessions
-#   attr_reader :user_sessions
-
-#   def initialize(user_sessions_response)
-#     @user_sessions = user_sessions_response
-#   end
-
-#   def total_hours_this_week
-#   end
-# end
-
-# class UserPrinter
-#   attr_reader :pastel
-
-#   # include ActiveView and ActiveSupport
-
-#   def initialize
-#     @pastel = Pastel.new
-#   end
-# end
-
-# class UserSessionsPrinter
-# end
