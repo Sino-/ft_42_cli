@@ -57,7 +57,7 @@ class Token
 
   attr_reader :token
 
-  def initialize(uid, secret, url)
+  def initialize
     client = OAuth2::Client.new(UID_42, SECRET_42, site: URL_42)
     @token = client.client_credentials.get_token
   end
@@ -75,6 +75,7 @@ class User
       return ["something, maybe..."]
     else
       return projects_in_progress.map { |in_prog| in_prog["project"]["name"] }
+    end
   end
 
   def first_name
@@ -210,6 +211,8 @@ class UserPrinter
 end
 
 class UserSessionsPrinter
+  include Constants
+
   attr_reader :pastel, :user_sessions
 
   def initialize(user_sessions)
@@ -218,9 +221,9 @@ class UserSessionsPrinter
   end
 
   def all
-    unless user_sessions.empty?
+    unless user_sessions.sessions.empty?
       active = false
-      user_sessions.each do |session|
+      user_sessions.sessions.each do |session|
         if session.end_at - session.begin_at == 600.0
           unless active
             puts "Is #{highlight('active')} at " + highlight("#{cluster(session.host)}") + " computer #{session.host}."
@@ -233,7 +236,7 @@ class UserSessionsPrinter
       end
 
       unless active
-        puts "Was last active " + highlight("#{ActionView::Base.new.time_ago_in_words(sessions.first.end_at)} ago") + " at #{highlight(cluster(sessions.first.host))}."
+        puts "Was last active " + highlight("#{ActionView::Base.new.time_ago_in_words(user_sessions.sessions.first.end_at)} ago") + " at #{highlight(cluster(user_sessions.sessions.first.host))}."
       end
     end
 
