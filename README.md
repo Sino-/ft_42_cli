@@ -32,7 +32,7 @@ Once you have it set up, you can use it like this:
 ft_42 [42_USERNAME]
 ```
 
-![ft_42 usage example](https://raw.githubusercontent.com/MatiasFMolinari/ft_42_cli/master/example_images/example_image1.png)
+![Usage](/example_images/example_image1.png?raw=true "Usage")
 
 ## Keep it up to date
 
