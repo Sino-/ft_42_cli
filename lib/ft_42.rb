@@ -20,8 +20,12 @@ class FT_42
     user_sessions       = UserSessions.new(ft_42.user_sessions)
     user_print          = UserPrinter.new(user)
     user_sessions_print = UserSessionsPrinter.new(user_sessions)
-    user_print.all
-    user_sessions_print.all
+    if args.second == "sessions"
+      user_sessions_print.sessions_this_week
+    else
+      user_print.all
+      user_sessions_print.all
+    end
   end
 end
 
@@ -247,6 +251,14 @@ class UserSessionsPrinter
       progressbar_needed = ProgressBar.create(progress_mark: "█", length: 60, format: "%t: |" + pastel.red("%B") + "| #{hours}/38 hours")
       percent_complete.times { progressbar_needed.increment }
       puts progressbar_needed
+    end
+  end
+
+  def sessions_this_week
+    unless user_sessions.sessions.empty?
+      user_sessions.sessions.each do |session|
+        puts "#{session.host} from #{session.begin_at} to #{session.end_at}"
+      end
     end
   end
 
