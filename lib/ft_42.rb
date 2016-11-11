@@ -219,6 +219,7 @@ class UserSessionsPrinter
     @user_sessions = user_sessions
   end
 
+  # TODO: Refactor this.
   def all
     unless user_sessions.sessions.empty?
       active = false

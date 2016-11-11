@@ -4,6 +4,8 @@ Useful 42 info from your command line.
 
 ## Setup
 
+Note: Look for me in the lab if you have any questions.
+
 1. Create your own 42 application
 	- Go to: https://profile.intra.42.fr/oauth/applications/new
 	- You just need a name and a redirect_uri. You may use the following:
@@ -29,6 +31,8 @@ Once you have it set up, you can use it like this:
 ```shell
 ft_42 [42_USERNAME]
 ```
+
+![ft_42 usage example](https://raw.githubusercontent.com/MatiasFMolinari/ft_42_cli/master/example_images/example_image1.png)
 
 ## Keep it up to date
 
