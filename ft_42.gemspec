@@ -1,6 +1,6 @@
 Gem::Specification.new do |gem|
   gem.name        = 'ft_42'
-  gem.version     = '0.0.8'
+  gem.version     = '0.0.9'
   gem.summary     = "Info for 42 students"
   gem.description = "General information for 42 students"
   gem.authors     = ["Matias Fernandez"]
@@ -14,7 +14,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency 'rails', '4.2.2'
-  gem.add_dependency 'pastel'
-  gem.add_dependency 'oauth2'
-  gem.add_dependency 'ruby-progressbar'
+  gem.add_dependency 'pastel', '~> 0.6.1'
+  gem.add_dependency 'oauth2', '~> 1.2'
+  gem.add_dependency 'ruby-progressbar', '~> 1.8', '>= 1.8.1'
 end

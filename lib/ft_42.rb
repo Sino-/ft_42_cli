@@ -20,12 +20,9 @@ class FT_42
     user_sessions       = UserSessions.new(ft_42.user_sessions)
     user_print          = UserPrinter.new(user)
     user_sessions_print = UserSessionsPrinter.new(user_sessions)
-    if args.second == "sessions"
-      user_sessions_print.sessions_this_week
-    else
-      user_print.all
-      user_sessions_print.all
-    end
+    system "clear"
+    user_print.all
+    user_sessions_print.all
   end
 end
 
@@ -38,10 +35,12 @@ class Client
   end
 
   def user
+    puts "Getting #{username}'s info..."
     token.get("/v2/users/#{username}", params: { per_page: 100 }).parsed
   end
 
   def user_sessions
+    puts "Getting #{username}'s session this week..."
     token.get("/v2/users/#{username}/locations?range[begin_at]=#{time_ago},#{right_now}", params: { per_page: 100 }).parsed
   end
 
@@ -99,17 +98,31 @@ class User
   end
 
   def level
-    cursus("42")["level"]
+    if pisciner?
+      cursus("Piscine C").first["level"] if pisciner?
+    elsif cadet?
+      cursus("42").first["level"]
+    else
+      0
+    end
   end
 
   def phone
     %x(ldapsearch -Q uid=#{username} | grep mobile).split.last
   end
 
+  def pisciner?
+    cursus("42").empty?
+  end
+
+  def cadet?
+    !pisciner?
+  end
+
   private
 
   def cursus(name)
-    user['cursus_users'].select { |cursus| cursus['cursus']['name'] == name }.first
+    user['cursus_users'].select { |cursus| cursus['cursus']['name'] == name }
   end
 
   def projects_in_progress
@@ -223,7 +236,6 @@ class UserSessionsPrinter
     @user_sessions = user_sessions
   end
 
-  # TODO: Refactor this.
   def all
     unless user_sessions.sessions.empty?
       active = false
