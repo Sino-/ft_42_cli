@@ -15,11 +15,11 @@ class FT_42
   include Constants
 
   def initialize(*args)
-    ft_42                 = Client.new(args.first)
-    user                  = User.new(ft_42.user)
-    user_sessions         = UserSessions.new(ft_42.user_sessions)
-    user_print            = UserPrinter.new(user)
-    user_sessions_print   = UserSessionsPrinter.new(user_sessions)
+    ft_42               = Client.new(args.first)
+    user                = User.new(ft_42.user)
+    user_sessions       = UserSessions.new(ft_42.user_sessions)
+    user_print          = UserPrinter.new(user)
+    user_sessions_print = UserSessionsPrinter.new(user_sessions)
     user_print.all
     user_sessions_print.all
   end
@@ -185,7 +185,6 @@ class UserPrinter
   end
 
   def level
-    # remove active support stuff
     puts "Is level #{highlight(ActiveSupport::NumberHelper.number_to_rounded(user.level, precision: 2))}"
   end
 
