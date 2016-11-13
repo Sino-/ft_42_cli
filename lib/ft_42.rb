@@ -11,18 +11,21 @@ module Constants
   HOURS_NEEDED = 38
 end
 
-class FT_42
 
+class FT_42
   def initialize(*args)
     ft_42               = Client.new(args.first)
     user                = User.new(ft_42.user)
     user_sessions       = UserSessions.new(ft_42.user_sessions)
     user_print          = UserPrinter.new(user)
     user_sessions_print = UserSessionsPrinter.new(user_sessions)
-    user_print.all
-    user_sessions_print.all
+    if args.size == 1
+      user_print.all
+      user_sessions_print.all
+    end
   end
 end
+
 
 class Client
   attr_reader :username, :token
@@ -53,6 +56,7 @@ class Client
   end
 end
 
+
 class Token
   include Constants
 
@@ -63,6 +67,8 @@ class Token
     @token = client.client_credentials.get_token
   end
 end
+
+
 
 class User
   attr_reader :user
@@ -128,6 +134,8 @@ class User
   end
 end
 
+
+
 class Session
   attr_reader :session
 
@@ -156,6 +164,8 @@ class Session
   end
 end
 
+
+
 class UserSessions
   attr_reader :user_sessions
 
@@ -175,6 +185,8 @@ class UserSessions
     (total_duration / 60 / 60).round
   end
 end
+
+
 
 class UserPrinter
   attr_reader :pastel, :user
@@ -224,6 +236,8 @@ class UserPrinter
   end
 end
 
+
+
 class UserSessionsPrinter
   include Constants
 
@@ -235,6 +249,11 @@ class UserSessionsPrinter
   end
 
   def all
+    active_or_last_active
+    hours_this_week
+  end
+
+  def active_or_last_active
     unless user_sessions.sessions.empty?
       active = false
       user_sessions.sessions.each do |session|
@@ -243,22 +262,31 @@ class UserSessionsPrinter
             puts "Is #{highlight('active')} at " + highlight("#{cluster(session.host)}") + " computer #{session.host}."
           end
           unless session.primary?
-            puts pastel.red.bold("Warning: Logged in on more than one computer. Please logout from #{session.host} ASAP.")
+            puts warning("Warning: Logged in on more than one computer. Please logout from #{session.host} ASAP.")
           end
           active = true
         end
       end
 
       unless active
-        puts "Was last active " + highlight("#{ActionView::Base.new.time_ago_in_words(user_sessions.sessions.first.end_at)} ago") + " at #{highlight(cluster(user_sessions.sessions.first.host))}."
+        last_active
       end
-    end
+    end    
+  end
 
-    puts "Has " + highlight("#{hours} #{hours == 1 ? 'hour' : 'hours'}") + " in the clusters this week, starting #{Time.current.beginning_of_week.strftime("%A, %B #{Time.current.beginning_of_week.day.ordinalize}")}. #{'Go to sleep.' if hours > 60}"
+  def last_active
+    puts "Was last active " + last_active_time_ago + " at #{last_active_computer}."
+  end
 
+  def hours_this_week
+    puts "Has " + highlight("#{hours} #{hours_pluralize}") + " in the clusters this week, starting #{last_monday}. #{'Go to sleep.' if hours > 60}"
+    hours_progress_bar
+  end
+
+  def hours_progress_bar
     percent_complete = ((hours.to_f / HOURS_NEEDED.to_f) * 100).round
     if (percent_complete <= 100)
-      progressbar_needed = ProgressBar.create(progress_mark: "█", length: 60, format: "%t: |" + pastel.red("%B") + "| #{hours}/38 hours")
+      progressbar_needed = ProgressBar.create(progress_mark: "█", length: 60, format: "%t: |" + warning("%B") + "| #{hours}/38 hours")
       percent_complete.times { progressbar_needed.increment }
       puts progressbar_needed
     end
@@ -278,8 +306,20 @@ class UserSessionsPrinter
     user_sessions.total_hours_this_week
   end
 
+  def hours_pluralize
+    if hours == 1
+      "hour"
+    else
+      "hours"
+    end
+  end
+
   def highlight(string)
     pastel.bright_green.bold(string)
+  end
+
+  def warning(string)
+    pastel.red(string)
   end
 
   def cluster(host)
@@ -290,5 +330,17 @@ class UserSessionsPrinter
     when host.include?("z3") then "Cluster 4"
     else host
     end
+  end
+
+  def last_active_time_ago
+    highlight("#{ActionView::Base.new.time_ago_in_words(user_sessions.sessions.first.end_at)} ago")
+  end
+
+  def last_active_computer
+    highlight(cluster(user_sessions.sessions.first.host))
+  end
+
+  def last_monday
+    Time.current.beginning_of_week.strftime("%A, %B #{Time.current.beginning_of_week.day.ordinalize}")
   end
 end
