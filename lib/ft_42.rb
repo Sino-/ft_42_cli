@@ -12,7 +12,6 @@ module Constants
 end
 
 class FT_42
-  include Constants
 
   def initialize(*args)
     ft_42               = Client.new(args.first)
@@ -20,7 +19,6 @@ class FT_42
     user_sessions       = UserSessions.new(ft_42.user_sessions)
     user_print          = UserPrinter.new(user)
     user_sessions_print = UserSessionsPrinter.new(user_sessions)
-    system "clear"
     user_print.all
     user_sessions_print.all
   end
