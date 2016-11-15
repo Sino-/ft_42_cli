@@ -31,16 +31,23 @@ Once you have it set up, you can use it like this:
 ```shell
 # shows user info
 ft_42 [42_USERNAME]
+```
+![User Example](/example_images/user_example.png?raw=true "User Example")
 
+```shell
 # shows user sessions this week, starting last monday.
 ft_42 [42_USERNAME] sessions
+```
 
+![Sessions Example](/example_images/sessions_example.png?raw=true "Sessions Example")
+
+```shell
 # shows user sessions, starting 3 weeks ago
 ft_42 [42_USERNAME] sessions 3 weeks ago
 ft_42 [42_USERNAME] sessions 3
 ```
 
-![Usage](/example_images/example_image1.png?raw=true "Usage")
+![Sessions Weeks Example](/example_images/sessions_weeks_example.png?raw=true "Sessions Weeks Example")
 
 ## Keep it up to date
 
