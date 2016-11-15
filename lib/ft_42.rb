@@ -13,10 +13,14 @@ module Constants
   HOURS_CHALLENGE   = 100
 end
 
-
 class FT_42
   def initialize(*args)
-    ft_42               = Client.new(args.first)
+    if (args.size > 2)
+      puts "This could take a while..."
+      ft_42 = Client.new(args.first, args.third)
+    else
+      ft_42 = Client.new(args.first)
+    end
     user                = User.new(ft_42.user)
     user_sessions       = UserSessions.new(ft_42.user_sessions)
     user_print          = UserPrinter.new(user)
@@ -24,33 +28,41 @@ class FT_42
     if args.size == 1
       user_print.all
       user_sessions_print.all
+    elsif args.second == "sessions"
+      user_sessions_print.sessions
+    else
+      puts"Wrong arguments. Usage ft_42 [USER_LOGIN] [OPTIONAL CMD]"
     end
   end
 end
 
 
 class Client
-  attr_reader :username, :token
+  attr_reader :username, :token, :weeks_ago
 
-  def initialize(username)
-    @username = username
-    @token    = Token.new.token
+  def initialize(username, weeks_ago = nil)
+    @username  = username
+    @weeks_ago = weeks_ago
+    @token     = Token.new.token
   end
 
   def user
-    puts "Getting #{username}'s info..."
     token.get("/v2/users/#{username}", params: { per_page: 100 }).parsed
   end
 
   def user_sessions
-    puts "Getting #{username}'s session this week..."
     token.get("/v2/users/#{username}/locations?range[end_at]=#{time_ago},#{right_now}", params: { per_page: 100 }).parsed
   end
 
   private
 
   def time_ago
-    Time.current.beginning_of_week.to_s.split(" ")[0...-1].join("T")
+    if weeks_ago
+      time = Time.current - (weeks_ago.to_i * 7).days
+      return time.to_s.split(" ")[0...-1].join("T")
+    else
+      return Time.current.beginning_of_week.to_s.split(" ")[0...-1].join("T")
+    end
   end
 
   def right_now
@@ -253,6 +265,22 @@ class UserSessionsPrinter
   def all
     active_or_last_active
     hours_this_week
+  end
+
+  def sessions
+    unless user_sessions.sessions.empty?
+      user_sessions.sessions.each do |session|
+        session_start       = "Session start:    " + session.begin_at.to_time.strftime("%A, %B %d at %I:%M:%S %p")
+        session_end         = "Session end:      " + session.end_at.to_time.strftime("%A, %B %d at %I:%M:%S %p")
+        duration_in_hours = ActiveSupport::NumberHelper.number_to_rounded((session.end_at.to_time - session.begin_at.to_time) / 60 / 60, :precision => 2)
+        puts
+        puts "Session duration: " + highlight("#{duration_in_hours} hours")
+        puts session_start
+        puts session_end
+        puts "Session host:     " + session.host + " at " + cluster(session.host)
+      end
+      puts
+    end
   end
 
   def active_or_last_active
