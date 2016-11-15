@@ -5,10 +5,12 @@ require "oauth2"
 require "ruby-progressbar"
 
 module Constants
-  URL_42       = "https://api.intra.42.fr"
-  UID_42       = ENV.fetch("FT42_UID")
-  SECRET_42    = ENV.fetch("FT42_SECRET")
-  HOURS_NEEDED = 38
+  URL_42            = "https://api.intra.42.fr"
+  UID_42            = ENV.fetch("FT42_UID")
+  SECRET_42         = ENV.fetch("FT42_SECRET")
+  HOURS_NEEDED      = 38
+  HOURS_ACHIEVEMENT = 90
+  HOURS_CHALLENGE   = 100
 end
 
 
@@ -42,7 +44,7 @@ class Client
 
   def user_sessions
     puts "Getting #{username}'s session this week..."
-    token.get("/v2/users/#{username}/locations?range[begin_at]=#{time_ago},#{right_now}", params: { per_page: 100 }).parsed
+    token.get("/v2/users/#{username}/locations?range[end_at]=#{time_ago},#{right_now}", params: { per_page: 100 }).parsed
   end
 
   private
@@ -217,7 +219,7 @@ class UserPrinter
 
   def correction_points
     print "Has #{highlight(ActionView::Base.new.pluralize(user.correction_points, 'correction point'))}."
-    grabs_pitchfork if user.correction_points > 6
+    grabs_pitchfork if user.correction_points > 8
     puts
   end
 
@@ -279,16 +281,42 @@ class UserSessionsPrinter
   end
 
   def hours_this_week
-    puts "Has " + highlight("#{hours} #{hours_pluralize}") + " in the clusters this week, starting #{last_monday}. #{'Go to sleep.' if hours > 60}"
+    puts "Has " + highlight("#{hours} #{hours_pluralize}") + " in the clusters this week, starting #{last_monday}."
     hours_progress_bar
+    hours_progress_bar_achievement
+    hours_progress_bar_challenge
   end
 
   def hours_progress_bar
     percent_complete = ((hours.to_f / HOURS_NEEDED.to_f) * 100).round
     if (percent_complete <= 100)
-      progressbar_needed = ProgressBar.create(progress_mark: "█", length: 60, format: "%t: |" + warning("%B") + "| #{hours}/38 hours")
+      progressbar_needed = ProgressBar.create(progress_mark: "█", length: 64, format: "%t:     |" + warning("%B") + "| #{hours}/38 hours")
       percent_complete.times { progressbar_needed.increment }
-      puts progressbar_needed
+      print "Minimum "
+      print progressbar_needed
+      puts
+    end
+  end
+
+  def hours_progress_bar_achievement
+    percent_complete = ((hours.to_f / HOURS_ACHIEVEMENT.to_f) * 100).round
+    if (percent_complete <= 100)
+      progressbar_needed = ProgressBar.create(progress_mark: "█", length: 60, format: "%t: |" + warning("%B") + "| #{hours}/90 hours")
+      percent_complete.times { progressbar_needed.increment }
+      print "Achievement "
+      print progressbar_needed
+      puts
+    end
+  end
+
+  def hours_progress_bar_challenge
+    percent_complete = ((hours.to_f / HOURS_CHALLENGE.to_f) * 100).round
+    if (percent_complete <= 100)
+      progressbar_needed = ProgressBar.create(progress_mark: "█", length: 63, format: "%t:   |" + warning("%B") + "| #{hours}/100 hours")
+      percent_complete.times { progressbar_needed.increment }
+      print "Challenge "
+      print progressbar_needed
+      puts
     end
   end
 
