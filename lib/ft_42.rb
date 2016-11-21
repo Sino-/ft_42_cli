@@ -3,6 +3,7 @@ require "action_view"
 require "pastel"
 require "oauth2"
 require "ruby-progressbar"
+require "pp"
 
 module Constants
   URL_42            = "https://api.intra.42.fr"
@@ -16,49 +17,93 @@ end
 class FT_42
   def initialize(*args)
     if (args.size > 2)
-      puts "This could take a while..."
-      ft_42 = Client.new(args.first, args.third)
+      if (args.first == "project")
+        ft_42 = Client.new(args.second, args.last)
+      else
+        ft_42 = Client.new(args.first, args.third)
+      end
     else
       ft_42 = Client.new(args.first)
     end
-    user                = User.new(ft_42.user)
-    user_sessions       = UserSessions.new(ft_42.user_sessions)
-    user_print          = UserPrinter.new(user)
-    user_sessions_print = UserSessionsPrinter.new(user_sessions)
-    if args.size == 1
-      user_print.all
-      user_sessions_print.all
-    elsif args.second == "sessions"
-      user_sessions_print.sessions
+    if (args.first == "project")
+      project             = Project.new(ft_42.project)
+      project_users       = ProjectUsers.new(ft_42.project_users)
+      project_print       = ProjectPrinter.new(project)
+      project_users_print = ProjectUsersPrinter.new(project_users)
+      project_print.all
+      project_users_print.all
     else
-      puts"Wrong arguments. Usage ft_42 [USER_LOGIN] [OPTIONAL CMD]"
+      user                = User.new(ft_42.user)
+      user_sessions       = UserSessions.new(ft_42.user_sessions)
+      user_print          = UserPrinter.new(user)
+      user_sessions_print = UserSessionsPrinter.new(user_sessions)
+      if args.size == 1
+        user_print.all
+        user_sessions_print.all
+      elsif args.second == "sessions"
+        user_sessions_print.sessions
+      else
+        puts"Wrong arguments. Usage ft_42 [USER_LOGIN] [OPTIONAL CMD]"
+      end
     end
   end
 end
 
 
 class Client
-  attr_reader :username, :token, :weeks_ago
+  attr_reader :input_1, :input_2, :token
 
-  def initialize(username, weeks_ago = nil)
-    @username  = username
-    @weeks_ago = weeks_ago
+  def initialize(input_1, input_2 = nil)
+    @input_1   = input_1
+    @input_2   = input_2
     @token     = Token.new.token
   end
 
   def user
-    token.get("/v2/users/#{username}", params: { per_page: 100 }).parsed
+    token.get("/v2/users/#{input_1}", params: { per_page: 100 }).parsed
   end
 
   def user_sessions
-    token.get("/v2/users/#{username}/locations?range[end_at]=#{time_ago},#{right_now}", params: { per_page: 100 }).parsed
+    token.get("/v2/users/#{input_1}/locations?range[end_at]=#{time_ago},#{right_now}", params: { per_page: 100 }).parsed
+  end
+
+  def project
+    token.get("/v2/projects/#{input_1}").parsed
+  end
+
+  def campus
+    token.get("/v2/campus/#{input_2}").parsed
+  end
+
+  def project_users
+    user_projects = []
+    i = 1
+    loop do
+      begin
+        tries ||= 3
+        response = token.get("/v2/projects_users?filter[campus]=#{campus['id']}&filter[project_id]=#{project['id']}", params: { page: i, per_page: 100 }).parsed
+      rescue
+        puts "Something went wrong..."
+        puts "REFRESHING API TOKEN... wait 8 sec"
+        sleep 8
+        client = OAuth2::Client.new(ENV.fetch("UID42"), ENV.fetch("SECRET42"), site: ENV.fetch("API42"))
+        token  = client.client_credentials.get_token
+        puts "Retrying request..."
+        retry unless (tries -= 1).zero?
+      else
+        break if response.empty?
+        user_projects << response
+        i += 1
+      end
+    end
+    user_projects
   end
 
   private
 
   def time_ago
-    if weeks_ago
-      time = Time.current - (weeks_ago.to_i * 7).days
+    if input_2
+      time = Time.current - (input_2.to_i * 7).days
       return time.to_s.split(" ")[0...-1].join("T")
     else
       return Time.current.beginning_of_week.to_s.split(" ")[0...-1].join("T")
@@ -82,6 +127,69 @@ class Token
   end
 end
 
+
+class Project
+  attr_reader :project
+
+  def initialize(project_response)
+    @project = project_response
+  end
+
+  def id
+    project["id"]
+  end
+
+  def name
+    project["name"]
+  end
+
+  def slug
+    project["slug"]
+  end
+
+  def tier
+    project["tier"]
+  end
+
+  def exam
+    project["exam"]
+  end
+end
+
+
+class Campus
+  attr_reader :campus
+
+  def initialize(campus_response)
+    @campus = campus_response
+  end
+
+  def id
+    campus["id"]
+  end
+
+  def name
+    campus["name"]
+  end
+
+  def student_count
+    campus["users_count"]
+  end
+end
+
+
+class ProjectUsers
+  attr_reader :project_users
+
+  def initialize(project_users_response)
+    @project_users = project_users_response
+    @project_users.flatten!
+  end
+
+  def logins
+    logins = project_users.map { |user_project| user_project["user"]["login"] }
+  end
+end
 
 
 class User
@@ -200,6 +308,53 @@ class UserSessions
   end
 end
 
+
+class ProjectPrinter
+  attr_reader :pastel, :project
+
+  def initialize(project)
+    @pastel  = Pastel.new
+    @project = project
+  end
+
+  def all
+    name
+    tier
+  end
+
+  def name
+    puts highlight(project.name)
+  end
+
+  def tier
+    puts "Tier: #{project.tier}"
+  end
+
+  private
+
+  def highlight(string)
+    pastel.bright_green.bold(string)
+  end
+end
+
+class ProjectUsersPrinter
+  attr_reader :pastel, :project_users
+
+  def initialize(project_users)
+    @pastel = Pastel.new
+    @project_users = project_users
+  end
+
+  def all
+    usernames
+  end
+
+  def usernames
+    project_users.logins.each_with_index do |login, i|
+      puts "#{i + 1}. #{login}"
+    end
+  end
+end
 
 
 class UserPrinter
