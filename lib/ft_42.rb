@@ -18,6 +18,7 @@ class FT_42
   def initialize(*args)
     if (args.size > 2)
       if (args.first == "project")
+        puts "This is a big request, it may take a minute or two."
         ft_42 = Client.new(args.second, args.last)
       else
         ft_42 = Client.new(args.first, args.third)

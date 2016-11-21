@@ -49,6 +49,14 @@ ft_42 [42_USERNAME] sessions 3
 
 ![Sessions Weeks Example](/example_images/sessions_weeks_example.png?raw=true "Sessions Weeks Example")
 
+```shell
+# shows all users within campus subscribed to specific project
+ft_42 project fract-ol in fremont
+ft_42 project ft_ls in paris
+```
+
+![Project Users Example](/example_images/project_users_example.png?raw=true "Project Users Example")
+
 ## Keep it up to date
 
 Make sure you have the latest version by running `gem update --user-install ft_42`
