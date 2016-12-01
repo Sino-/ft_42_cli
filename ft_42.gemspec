@@ -19,4 +19,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'pastel', '~> 0.6.1'
   gem.add_dependency 'oauth2', '~> 1.2'
   gem.add_dependency 'ruby-progressbar', '~> 1.8', '>= 1.8.1'
+  gem.add_dependency 'iterm2-viewer', '~> 0.0.8'
 end
