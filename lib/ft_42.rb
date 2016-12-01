@@ -39,7 +39,7 @@ class FT_42
       user_print          = UserPrinter.new(user)
       user_sessions_print = UserSessionsPrinter.new(user_sessions)
       if args.size == 1
-        # system "iterm2-viewer ~/Documents/Cookie.png"
+        system "iterm2-viewer /nfs/intrav2cdn/users/medium_#{args.first}.jpeg"
         user_print.all
         user_sessions_print.all
       elsif args.second == "sessions"
