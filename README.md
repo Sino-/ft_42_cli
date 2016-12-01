@@ -15,7 +15,7 @@ Note: Look for me in the lab if you have any questions.
 2. Place your app's UID and SECRET keys in your local environment by opening your ~/.bash_profile (~./zshrc if using zsh) and adding the following code:
 
 	```shell
-	export PATH=/nfs/2016/[FIRST_LETTER_OF_42_USERNAME]/[YOUR_42_USERNAME]/.gem/ruby/2.0.0/bin:$PATH
+	export PATH=$HOME/.gem/ruby/2.0.0/bin:$PATH
 	export FT42_UID=[YOUR_UID_HERE]
 	export FT42_SECRET=[YOUR_SECRET_HERE]
 	```
