@@ -47,6 +47,8 @@ class FT_42
         if ENV["TERM_PROGRAM"] == "iTerm.app"
           system "iterm2-viewer /nfs/intrav2cdn/users/medium_#{args.first}.jpeg"
         end
+        user_print.all
+        user_sessions_print.all
       else
         puts"Wrong arguments. Usage ft_42 [USER_LOGIN] [OPTIONAL CMD]"
       end

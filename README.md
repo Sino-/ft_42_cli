@@ -31,6 +31,8 @@ Once you have it set up, you can use it like this:
 ```shell
 # shows user info
 ft_42 [42_USERNAME]
+# shows user info with pic (only iTerm)
+ft_42 [42_USERNAME] pic
 ```
 ![User Example](/example_images/user_example.png?raw=true "User Example")
 
