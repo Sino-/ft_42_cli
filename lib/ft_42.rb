@@ -39,13 +39,14 @@ class FT_42
       user_print          = UserPrinter.new(user)
       user_sessions_print = UserSessionsPrinter.new(user_sessions)
       if args.size == 1
-        if ENV["TERM_PROGRAM"] == "iTerm.app"
-          system "iterm2-viewer /nfs/intrav2cdn/users/medium_#{args.first}.jpeg"
-        end
         user_print.all
         user_sessions_print.all
       elsif args.second == "sessions"
         user_sessions_print.sessions
+      elsif args.second == "pic"
+        if ENV["TERM_PROGRAM"] == "iTerm.app"
+          system "iterm2-viewer /nfs/intrav2cdn/users/medium_#{args.first}.jpeg"
+        end
       else
         puts"Wrong arguments. Usage ft_42 [USER_LOGIN] [OPTIONAL CMD]"
       end
