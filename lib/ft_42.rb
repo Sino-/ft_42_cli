@@ -58,11 +58,12 @@ end
 
 
 class Client
-  attr_reader :input_1, :input_2, :token
+  attr_reader :input_1, :input_2, :input_3, :token
 
-  def initialize(input_1, input_2 = nil)
+  def initialize(input_1, input_2 = nil, input_3 = nil)
     @input_1   = input_1
     @input_2   = input_2
+    @input_3   = input_3
     @token     = Token.new.token
   end
 
@@ -194,7 +195,12 @@ class ProjectUsers
   end
 
   def logins
-    logins = project_users.map { |user_project| user_project["user"]["login"] }
+    project_users.map { |user_project| user_project["user"]["login"] }
+  end
+
+  def in_progress
+    in_progress = project_users.select { |user_project| user_project["status"] == "in_progress" }
+    in_progress.map { |user_project| user_project["user"]["login"] }
   end
 end
 
@@ -334,7 +340,7 @@ class ProjectPrinter
   end
 
   def tier
-    puts "Tier: #{project.tier}"
+    puts "Difficulty Level: #{project.tier}"
   end
 
   private
@@ -357,7 +363,8 @@ class ProjectUsersPrinter
   end
 
   def usernames
-    project_users.logins.each_with_index do |login, i|
+    puts "Currenly working on project:"
+    project_users.in_progress.each_with_index do |login, i|
       puts "#{i + 1}. #{login}"
     end
   end
