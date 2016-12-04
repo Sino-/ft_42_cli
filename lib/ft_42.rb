@@ -1,4 +1,5 @@
 require "active_support/all"
+require "date"
 require "action_view"
 require "pastel"
 require "oauth2"
@@ -19,7 +20,22 @@ class FT_42
     if (args.size > 2)
       if (args.first == "project")
         puts "This is a big request, it may take a minute or two."
-        ft_42 = Client.new(args.second, args.last)
+        if (args.include?("after"))
+          after = args.pop(3).join(" ")
+          after = DateTime.parse(after)
+          args.pop
+          ft_42 = Client.new(args.second, args.last, after)
+        elsif (args.include?("between"))
+          before = args.pop(3).join(" ")
+          before = DateTime.parse(before)
+          args.pop
+          after  = args.pop(3).join(" ")
+          after  = DateTime.parse(after)
+          args.pop
+          ft_42  = Client.new(args.second, args.last, after, before)
+        else
+          ft_42 = Client.new(args.second, args.last)
+        end
       else
         ft_42 = Client.new(args.first, args.third)
       end
@@ -58,12 +74,13 @@ end
 
 
 class Client
-  attr_reader :input_1, :input_2, :input_3, :token
+  attr_reader :input_1, :input_2, :input_3, :input_4, :token
 
-  def initialize(input_1, input_2 = nil, input_3 = nil)
+  def initialize(input_1, input_2 = nil, input_3 = nil, input_4 = nil)
     @input_1   = input_1
     @input_2   = input_2
     @input_3   = input_3
+    @input_4   = input_4
     @token     = Token.new.token
   end
 
@@ -89,7 +106,11 @@ class Client
     loop do
       begin
         tries ||= 3
-        response = token.get("/v2/projects_users?filter[campus]=#{campus['id']}&filter[project_id]=#{project['id']}", params: { page: i, per_page: 100 }).parsed
+        if input_3
+          response = token.get("/v2/projects_users?filter[campus]=#{campus['id']}&filter[project_id]=#{project['id']}&range[created_at]=#{after},#{before}", params: { page: i, per_page: 100 }).parsed
+        else
+          response = token.get("/v2/projects_users?filter[campus]=#{campus['id']}&filter[project_id]=#{project['id']}", params: { page: i, per_page: 100 }).parsed
+        end
       rescue
         puts "Something went wrong..."
         puts "REFRESHING API TOKEN... wait 8 sec"
@@ -108,6 +129,18 @@ class Client
   end
 
   private
+
+  def after
+    input_3.to_time.to_s.split(" ")[0...-1].join("T")
+  end
+
+  def before
+    if input_4
+      input_4.to_time.to_s.split(" ")[0...-1].join("T")
+    else
+      Time.current.beginning_of_week.to_s.split(" ")[0...-1].join("T")
+    end
+  end
 
   def time_ago
     if input_2

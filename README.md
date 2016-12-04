@@ -52,12 +52,19 @@ ft_42 [42_USERNAME] sessions 3
 ![Sessions Weeks Example](/example_images/sessions_weeks_example.png?raw=true "Sessions Weeks Example")
 
 ```shell
-# shows all users within campus subscribed to specific project
+# shows all users currently working on project ("status = in_progress")
 ft_42 project fract-ol in fremont
 ft_42 project ft_ls in paris
+
+![Project Users Example](/example_images/currently_working_on.png?raw=true "Project Users Example")
+
+# you can also filter by date subscribed range
+ft_42 project wolf3d in fremont after November 1, 2016
+ft_42 project wolf3d in fremont between November 1, 2016 and November 20, 2016
 ```
 
-![Project Users Example](/example_images/project_users_example.png?raw=true "Project Users Example")
+![Project Users After Example](/example_images/working_on_after_paris.png?raw=true "Project Users After Example")
+![Project Users Range Example](/example_images/working_on_range.png?raw=true "Project Users Range Example")
 
 ## Keep it up to date
 
