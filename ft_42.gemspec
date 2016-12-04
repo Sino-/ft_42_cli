@@ -1,6 +1,6 @@
 Gem::Specification.new do |gem|
   gem.name        = 'ft_42'
-  gem.version     = '0.4.2'
+  gem.version     = '0.4.3'
   gem.summary     = "Info for 42 students"
   gem.description = "General information for 42 students"
   gem.authors     = ["Matias Fernandez"]

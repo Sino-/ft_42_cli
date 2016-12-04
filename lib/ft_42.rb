@@ -140,9 +140,9 @@ class Client
 
   def before
     if input_4
-      input_4.to_time.to_s.split(" ")[0...-1].join("T")
+      return input_4.to_time.to_s.split(" ")[0...-1].join("T")
     else
-      Time.current.beginning_of_week.to_s.split(" ")[0...-1].join("T")
+      return Time.current.to_s.split(" ")[0...-1].join("T")
     end
   end
 

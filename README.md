@@ -73,3 +73,16 @@ ft_42 project wolf3d in fremont between November 1, 2016 and November 20, 2016
 ## Keep it up to date
 
 Make sure you have the latest version by running `gem update --user-install ft_42`
+
+## Contribute :heart:
+
+There's lots of ways you can contribute. Hit me up on slack, fork it, play around with the implementation, or improve the docs.
+
+You could also grab something from the todo list.
+
+To-do List:
+
+- Use the much cleaner `gem fortytwo` for making requests. ft_42_cli should only contain the printers.
+- Improve option parser. Possibly using OptionParser tool.
+- Add usage help for `ft_42` and `ft_42 help`.
+- Make configuration file to improve installation process and save certain values.
