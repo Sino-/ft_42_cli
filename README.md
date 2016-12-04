@@ -74,7 +74,7 @@ ft_42 project wolf3d in fremont between November 1, 2016 and November 20, 2016
 
 Make sure you have the latest version by running `gem update --user-install ft_42`
 
-## Contribute :heart:
+## Contribute
 
 There's lots of ways you can contribute. Hit me up on slack, fork it, play around with the implementation, or improve the docs.
 
@@ -86,3 +86,7 @@ To-do List:
 - Improve option parser. Possibly using OptionParser tool.
 - Add usage help for `ft_42` and `ft_42 help`.
 - Make configuration file to improve installation process and save certain values.
+
+## Thank You :heart:
+
+Thanks you [Sino](https://github.com/Sino-) and [Chris](https://github.com/ChrisRenfrow) for helping out!
