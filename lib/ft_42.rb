@@ -65,6 +65,10 @@ class FT_42
         end
         user_print.all
         user_sessions_print.all
+      elsif args.second == "progress"
+        user_print.all
+        user_sessions_print.all
+        user_sessions_print.progress_bar
       else
         puts"Wrong arguments. Usage ft_42 [USER_LOGIN] [OPTIONAL CMD]"
       end
@@ -512,6 +516,10 @@ class UserSessionsPrinter
 
   def hours_this_week
     puts "Has " + highlight("#{hours} #{hours_pluralize}") + " in the clusters this week, starting #{last_monday}."
+
+  end
+
+  def progress_bar
     hours_progress_bar
     hours_progress_bar_achievement
     hours_progress_bar_challenge

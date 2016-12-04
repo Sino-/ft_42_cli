@@ -33,8 +33,10 @@ Once you have it set up, you can use it like this:
 ft_42 [42_USERNAME]
 # shows user info with picture (only iTerm, only Fremont)
 ft_42 [42_USERNAME] pic
+# shows user info with progress bars
+ft_42 [42_USERNAME] progress
 ```
-![User Example](/example_images/user_example_no_pic.png?raw=true "User Example")
+![User Example](/example_images/user_example_regular.png?raw=true "User Example")
 
 ```shell
 # shows user sessions this week, starting last monday.
