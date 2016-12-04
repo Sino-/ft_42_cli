@@ -34,7 +34,7 @@ ft_42 [42_USERNAME]
 # shows user info with picture (only iTerm, only Fremont)
 ft_42 [42_USERNAME] pic
 ```
-![User Example](/example_images/user_example.png?raw=true "User Example")
+![User Example](/example_images/user_example_no_pic.png?raw=true "User Example")
 
 ```shell
 # shows user sessions this week, starting last monday.
