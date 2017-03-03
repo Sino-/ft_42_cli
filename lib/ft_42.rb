@@ -320,7 +320,7 @@ class Session
   end
 
   def end_at
-    session["end_at"].to_time
+    session["end_at"].to_time unless session["end_at"].nil?
   end
 
   def host
@@ -332,7 +332,7 @@ class Session
   end
 
   def duration
-    end_at - begin_at
+    end_at - begin_at unless end_at.nil?
   end
 end
 
@@ -352,7 +352,7 @@ class UserSessions
   def total_hours_this_week
     total_duration = 0
     sessions.each do |session|
-      total_duration += session.duration
+      total_duration += session.duration || 0
     end
     (total_duration / 60 / 60).round
   end
@@ -493,14 +493,16 @@ class UserSessionsPrinter
     unless user_sessions.sessions.empty?
       active = false
       user_sessions.sessions.each do |session|
-        if session.end_at - session.begin_at == 600.0
-          unless active
-            puts "Is #{highlight('active')} at " + highlight("#{cluster(session.host)}") + " computer #{session.host}."
+        unless session.end_at.nil?
+          if session.end_at - session.begin_at == 600.0
+            unless active
+              puts "Is #{highlight('active')} at " + highlight("#{cluster(session.host)}") + " computer #{session.host}."
+            end
+            unless session.primary?
+              puts warning("Warning: Logged in on more than one computer. Please logout from #{session.host} ASAP.")
+            end
+            active = true
           end
-          unless session.primary?
-            puts warning("Warning: Logged in on more than one computer. Please logout from #{session.host} ASAP.")
-          end
-          active = true
         end
       end
 
@@ -511,7 +513,7 @@ class UserSessionsPrinter
   end
 
   def last_active
-    puts "Was last active " + last_active_time_ago + " at #{last_active_computer}."
+    puts "Was last active " + (last_active_time_ago || "") + " at #{last_active_computer}."
   end
 
   def hours_this_week
@@ -599,7 +601,7 @@ class UserSessionsPrinter
   end
 
   def last_active_time_ago
-    highlight("#{ActionView::Base.new.time_ago_in_words(user_sessions.sessions.first.end_at)} ago")
+    highlight("#{ActionView::Base.new.time_ago_in_words(user_sessions.sessions.first.end_at)} ago") unless user_sessions.sessions.first.end_at.nil?
   end
 
   def last_active_computer
