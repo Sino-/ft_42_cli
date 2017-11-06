@@ -61,7 +61,7 @@ class FT_42
         user_sessions_print.sessions
       elsif args.second == "pic"
         if ENV["TERM_PROGRAM"] == "iTerm.app"
-          system "iterm2-viewer /nfs/intrav2cdn/users/medium_#{args.first}.jpeg"
+          system "iterm2-viewer /nfs/intrav2cdn/users/medium_#{args.first}.jpg"
         end
         user_print.all
         user_sessions_print.all
